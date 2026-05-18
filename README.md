@@ -1,59 +1,74 @@
-# Client
+# ChatMidagri - Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.24.
+Chatbot juridico del Ministerio de Desarrollo Agrario y Riego (MIDAGRI).
 
-## Development server
+Angular 19 | TypeScript | SCSS
 
-To start a local development server, run:
+## Requisitos previos
 
-```bash
-ng serve
-```
+- **Node.js** >= 18.x
+- **npm** >= 9.x
+- Backend corriendo (ver repositorio del servidor)
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Instalacion y puesta en marcha
 
 ```bash
-ng generate component component-name
+# 1. Clonar el repositorio
+git clone https://github.com/ingsersocall-IA/ChatMidagri.git
+cd ChatMidagri
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Configurar la URL del backend
+#    Editar src/environments/environment.ts
+#    - Para desarrollo local (proxy):   apiBase: ''
+#    - Para produccion con ngrok:        apiBase: 'https://backchatm.ngrok.app'
+
+# 4. Iniciar el servidor de desarrollo
+npm start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+La aplicacion estara disponible en `http://localhost:4200/`
+
+> En modo desarrollo, las peticiones a `/api/*` se redirigen automaticamente al backend en `http://localhost:3000` gracias a `proxy.conf.json`.
+
+## Build para produccion
 
 ```bash
-ng generate --help
+npm run build
 ```
 
-## Building
+Los archivos generados quedan en `dist/client/`. Asegurate de que `environment.ts` tenga la URL correcta del backend antes de compilar.
 
-To build the project run:
+## Estructura del proyecto
 
-```bash
-ng build
+```
+src/
+├── app/
+│   ├── auth/              # Login y registro
+│   ├── chat/              # Componente principal del chat
+│   ├── core/              # Guards e interceptors
+│   ├── services/          # AuthService, ChatService, SpeechService
+│   └── shared/            # Componentes compartidos (MarkdownBubble)
+├── assets/                # Imagenes y branding
+├── environments/          # Configuracion de entorno (apiBase)
+├── index.html
+├── main.ts
+└── styles.scss            # Estilos globales
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Despliegue
 
-## Running unit tests
+1. Compilar con `npm run build`
+2. Servir el contenido de `dist/client/` desde cualquier servidor estatico (Nginx, Apache, Vercel, Netlify, etc.)
+3. Asegurar que el valor de `apiBase` en `environment.ts` apunte al backend accesible_publicmente
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## Funcionalidades
 
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Chat con streaming de respuestas
+- Sintesis de voz (TTS) para respuestas del asistente
+- Reconocimiento de voz (STT) para consultas por audio
+- Gestion de carpetas y conversaciones
+- Autenticacion (login/registro)
+- Diseno responsive
