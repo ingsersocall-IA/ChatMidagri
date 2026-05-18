@@ -1,0 +1,55 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <img
+        class="auth-brand__icon"
+        src="/assets/branding/chatmidagri-icon.svg"
+        width="56"
+        height="56"
+        alt=""
+      />
+      <img
+        class="auth-brand__logo"
+        src="/assets/branding/midagri-logo.svg"
+        height="40"
+        alt="MIDAGRI"
+      />
+    </div>
+    <h1 class="auth-title">Crear acceso</h1>
+    <p class="auth-sub">
+      Registro para el asistente de consultas jurídicas y normativas MIDAGRI.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+      <label class="auth-label" for="reg-email">Correo</label>
+      <input
+        id="reg-email"
+        class="auth-input"
+        type="email"
+        autocomplete="username"
+        formControlName="email"
+      />
+
+      <label class="auth-label" for="reg-password">Contraseña (mín. 8)</label>
+      <input
+        id="reg-password"
+        class="auth-input"
+        type="password"
+        autocomplete="new-password"
+        formControlName="password"
+      />
+
+      @if (error) {
+        <p class="auth-error" role="alert">{{ error }}</p>
+      }
+
+      <button class="auth-submit" type="submit" [disabled]="loading">
+        {{ loading ? 'Creando…' : 'Registrarme' }}
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      ¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a>
+    </p>
+  </div>
+</div>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" role="img" aria-label="MIDAGRI">
+  <rect width="160" height="120" fill="#fff"/>
+  <rect x="160" width="160" height="120" fill="#D91023"/>
+  <text x="240" y="72" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="28" font-weight="bold">PER�</text>
+  <rect y="80" width="320" height="40" fill="#53565A"/>
+  <text x="160" y="108" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="22" font-weight="bold">MIDAGRI</text>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ChatMidagri">
+  <rect width="64" height="64" rx="12" fill="#050505"/>
+  <path fill="#5FAF2D" d="M12 48h40v4H12z"/>
+  <rect x="16" y="14" width="32" height="28" rx="8" fill="#fff"/>
+  <ellipse cx="26" cy="26" rx="3" ry="5" fill="#2F6B1F"/>
+  <ellipse cx="38" cy="26" rx="3" ry="5" fill="#2F6B1F"/>
+  <path stroke="#2F6B1F" stroke-width="2" fill="none" d="M26 36q6 4 12 0"/>
+  <path fill="#D91023" d="M10 22a14 14 0 0 1 8-10v20z"/>
+  <rect x="12" y="14" width="4" height="18" fill="#fff"/>
+</svg>
