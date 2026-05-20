@@ -256,8 +256,9 @@
   .main__header{padding:.55rem .75rem}
   .thread{padding:.85rem .85rem 165px;-webkit-overflow-scrolling:touch}
   .scroll-nav{display:none}
-  .composer{padding:.35rem .65rem .75rem}
-  .composer__card{border-radius:var(--radius-lg);padding:.75rem .85rem .55rem}
+  .composer{padding:.35rem .65rem .75rem;left:0;right:0;width:100%;box-sizing:border-box}
+  .composer__card{border-radius:var(--radius-lg);padding:.75rem .85rem .55rem;width:100%;box-sizing:border-box;max-width:100%;margin-left:auto;margin-right:auto}
+  .composer__bar{justify-content:center;gap:.6rem}
   .composer__input{font-size:.9375rem;min-height:44px;touch-action:manipulation}
   .composer__input::placeholder{font-size:.8125rem}
   .composer__mic,.composer__tts{width:40px;height:40px;touch-action:manipulation}
@@ -276,6 +277,6 @@
   .main__title{font-size:.9rem}
   .main__hint{display:none}
   .message-row--user .message-content{max-width:95%}
-  .composer{padding:.3rem .5rem .65rem}
-  .composer__card{padding:.65rem .75rem .5rem}
+  .composer{padding:.3rem .5rem .65rem;width:100%;box-sizing:border-box}
+  .composer__card{padding:.65rem .75rem .5rem;width:100%;box-sizing:border-box}
 }
