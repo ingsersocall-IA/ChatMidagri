@@ -67,7 +67,7 @@ export class ChatComponent implements OnDestroy {
   readonly isRecording = signal(false);
   readonly ttsEnabled = signal(false);
   readonly audioPlaying = signal(false);
-  readonly logoSrc = signal('/assets/branding/LOGO_CHATBOT.png');
+  readonly logoSrc = signal('/assets/branding/ministerio.png');
   readonly assistantIconSrc = signal('/assets/branding/ICON_CHATMIDAGRI.png');
   readonly draggingConvId = signal<string | null>(null);
   readonly dragOverFolderId = signal<string | 'root' | null>(null);

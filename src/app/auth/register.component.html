@@ -1,55 +1,94 @@
 <div class="auth-page">
-  <div class="auth-card">
-    <div class="auth-brand">
-      <img
-        class="auth-brand__icon"
-        src="/assets/branding/chatmidagri-icon.svg"
-        width="56"
-        height="56"
-        alt=""
-      />
-      <img
-        class="auth-brand__logo"
-        src="/assets/branding/midagri-logo.svg"
-        height="40"
-        alt="MIDAGRI"
-      />
+
+  <!-- Panel izquierdo: branding -->
+  <div class="auth-panel auth-panel--brand">
+    <div class="auth-panel__content">
+      <img class="auth-panel__logo" src="/assets/branding/logo_login.png" alt="Asistente MIDAGRI"/>
+      <h1 class="auth-panel__title">Asistente Jurídico MIDAGRI</h1>
+      <p class="auth-panel__desc">
+        Plataforma de consultas orientativas para facilitar el acceso a:
+      </p>
+      <ul class="auth-panel__features">
+        <li class="auth-panel__feature">
+          <span class="auth-panel__feat-icon">⚖️</span>
+          <span>Normativa agraria actualizada</span>
+        </li>
+        <li class="auth-panel__feature">
+          <span class="auth-panel__feat-icon">📋</span>
+          <span>Orientación en trámites agrarios</span>
+        </li>
+        <li class="auth-panel__feature">
+          <span class="auth-panel__feat-icon">🔒</span>
+          <span>Acceso institucional seguro</span>
+        </li>
+      </ul>
     </div>
-    <h1 class="auth-title">Crear acceso</h1>
-    <p class="auth-sub">
-      Registro para el asistente de consultas jurídicas y normativas MIDAGRI.
-    </p>
-
-    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
-      <label class="auth-label" for="reg-email">Correo</label>
-      <input
-        id="reg-email"
-        class="auth-input"
-        type="email"
-        autocomplete="username"
-        formControlName="email"
-      />
-
-      <label class="auth-label" for="reg-password">Contraseña (mín. 8)</label>
-      <input
-        id="reg-password"
-        class="auth-input"
-        type="password"
-        autocomplete="new-password"
-        formControlName="password"
-      />
-
-      @if (error) {
-        <p class="auth-error" role="alert">{{ error }}</p>
-      }
-
-      <button class="auth-submit" type="submit" [disabled]="loading">
-        {{ loading ? 'Creando…' : 'Registrarme' }}
-      </button>
-    </form>
-
-    <p class="auth-footer">
-      ¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a>
-    </p>
+    <div class="auth-panel__bottom">
+      <img class="auth-panel__midagri-logo" src="/assets/branding/ministerio.png" alt="MIDAGRI"/>
+      <p class="auth-panel__footnote">Ministerio de Desarrollo Agrario y Riego · Perú</p>
+    </div>
   </div>
+
+  <!-- Separador vid: divide visualmente verde y blanco -->
+  <img class="auth-vine" src="/assets/branding/pngwing.com.png" alt="" aria-hidden="true"/>
+
+  <!-- Panel derecho: formulario -->
+  <div class="auth-panel auth-panel--form">
+    <div class="auth-form-wrap">
+
+      <div class="auth-form-header">
+        <img class="auth-form-icon" src="/assets/branding/icono_login_.png" alt=""/>
+        <h2 class="auth-form-title">Crear cuenta</h2>
+        <p class="auth-sub">Registro para el asistente de consultas jurídicas y normativas.</p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+        <label class="auth-label" for="reg-email">Correo institucional</label>
+        <input
+          id="reg-email"
+          class="auth-input"
+          [class.auth-input--invalid]="form.get('email')!.invalid && form.get('email')!.touched"
+          type="email"
+          autocomplete="username"
+          formControlName="email"
+        />
+        @if (form.get('email')!.touched && form.get('email')!.hasError('required')) {
+          <span class="auth-field-error">El correo es obligatorio.</span>
+        }
+        @if (form.get('email')!.touched && form.get('email')!.hasError('email')) {
+          <span class="auth-field-error">Ingrese un correo electrónico válido.</span>
+        }
+
+        <label class="auth-label" for="reg-password">Contraseña (mín. 8 caracteres)</label>
+        <input
+          id="reg-password"
+          class="auth-input"
+          [class.auth-input--invalid]="form.get('password')!.invalid && form.get('password')!.touched"
+          type="password"
+          autocomplete="new-password"
+          formControlName="password"
+        />
+        @if (form.get('password')!.touched && form.get('password')!.hasError('required')) {
+          <span class="auth-field-error">La contraseña es obligatoria.</span>
+        }
+        @if (form.get('password')!.touched && form.get('password')!.hasError('minlength')) {
+          <span class="auth-field-error">Mínimo 8 caracteres.</span>
+        }
+
+        @if (error) {
+          <p class="auth-error" role="alert">{{ error }}</p>
+        }
+
+        <button class="auth-submit" type="submit" [disabled]="loading">
+          {{ loading ? 'Creando…' : 'Registrarme' }}
+        </button>
+      </form>
+
+      <p class="auth-footer">
+        ¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a>
+      </p>
+
+    </div>
+  </div>
+
 </div>

@@ -1,20 +1,63 @@
-.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:var(--color-bg);transition:background var(--transition-normal)}
-.auth-card{width:100%;max-width:420px;padding:2rem;border-radius:var(--radius-card);background:var(--color-panel);border:1px solid var(--color-border-light);box-shadow:var(--shadow-lg);transition:all var(--transition-normal)}
-.auth-brand{display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;height:110px;overflow:hidden}
-.auth-brand__logo{max-width:280px;height:auto;object-fit:contain;object-position:center}
-.auth-brand__icon{width:48px;height:48px;flex-shrink:0;margin-right:.75rem}
-.auth-title{margin:0 0 .5rem;font-size:1.35rem;font-weight:700;color:var(--color-text)}
-.auth-sub{margin:0 0 1.5rem;font-size:.875rem;color:var(--color-text-muted);line-height:1.5}
+/* ── Layout: Grid página ─────────────────────────────────── */
+.auth-page{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr;background:var(--color-bg);transition:background var(--transition-normal);position:relative}
+.auth-vine{position:absolute;top:0;left:51.38%;transform:translateX(-38%);height:100%;width:auto;z-index:10;pointer-events:none;display:block;object-fit:contain;object-position:top center}
+
+/* ── Panel izquierdo: branding ───────────────────────────── */
+.auth-panel--brand{position:relative;overflow:hidden;background:linear-gradient(150deg,var(--color-primary-dark) 0%,var(--color-primary) 55%,var(--color-primary-light) 100%);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:3rem 2.5rem;min-height:100vh}
+.auth-panel--brand::before{content:'';position:absolute;inset:0;background:url('/assets/branding/circuito.png') center/94% no-repeat;opacity:.17;pointer-events:none;-webkit-mask-image:radial-gradient(ellipse 85% 80% at 50% 50%,#000 25%,transparent 75%);mask-image:radial-gradient(ellipse 85% 80% at 50% 50%,#000 25%,transparent 75%)}
+
+/* Flexbox dentro del panel izquierdo */
+.auth-panel__content{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1.4rem}
+.auth-panel__logo{max-width:346px;height:auto;object-fit:contain;border-radius:var(--radius-card);filter:drop-shadow(0 4px 12px rgba(0,0,0,.25))}
+.auth-panel__title{margin:0;font-size:2.06rem;font-weight:700;color:#fff;line-height:1.25;letter-spacing:-.015em}
+.auth-panel__desc{margin:0;font-size:1.04rem;color:rgba(255,255,255,.8);line-height:1.65;max-width:300px}
+.auth-panel__features{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:.6rem;width:100%;max-width:290px}
+.auth-panel__feature{display:flex;align-items:center;gap:.7rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:var(--radius-sm);padding:.55rem .85rem;font-size:.835rem;color:#fff;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.auth-panel__feat-icon{font-size:1rem;flex-shrink:0}
+.auth-panel__bottom{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:.6rem}
+.auth-panel__midagri-logo{max-width:253px;height:auto;object-fit:contain;border-radius:var(--radius-sm);box-shadow:var(--shadow-md)}
+.auth-panel__footnote{margin:0;font-size:1rem;color:#fff;letter-spacing:.03em;text-align:center}
+
+/* ── Panel derecho: formulario ───────────────────────────── */
+.auth-panel--form{display:flex;align-items:center;justify-content:center;padding:2.5rem 2rem;background:var(--color-panel);transition:background var(--transition-normal);overflow-y:auto}
+
+/* Flexbox dentro del formulario */
+.auth-form-wrap{width:100%;max-width:380px;display:flex;flex-direction:column}
+.auth-form-header{margin-bottom:1.75rem;text-align:center}
+.auth-form-icon{display:block;margin:0 auto 1rem;width:205px;height:205px;object-fit:contain;border-radius:0.5rem}
+.auth-form-title{margin:0 0 .4rem;font-size:1.5rem;font-weight:700;color:var(--color-text);letter-spacing:-.015em}
+.auth-sub{margin:0;font-size:.875rem;color:var(--color-text-muted);line-height:1.55}
 .auth-form{display:flex;flex-direction:column;gap:.35rem}
-.auth-label{margin-top:.5rem;font-size:.8125rem;font-weight:500;color:var(--color-text-muted)}
+.auth-label{margin-top:.6rem;font-size:.8125rem;font-weight:500;color:var(--color-text-muted)}
 .auth-input{width:100%;padding:.65rem .75rem;border-radius:var(--radius-md);border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text);font-size:.9375rem;transition:all var(--transition-fast)}
 .auth-input:focus{outline:none;border-color:var(--color-primary);box-shadow:var(--shadow-focus)}
 .auth-input::placeholder{color:var(--color-text-muted);opacity:.6}
+.auth-input--invalid{border-color:var(--color-danger);background:var(--color-danger-bg)}
+.auth-input--invalid:focus{border-color:var(--color-danger);box-shadow:0 0 0 3px rgba(227,6,19,.2)}
+.auth-field-error{display:flex;align-items:center;gap:.35rem;margin-top:.3rem;font-size:.78rem;color:var(--color-danger);font-weight:500}
+.auth-field-error::before{content:'';display:inline-block;width:14px;height:14px;flex-shrink:0;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E") center/contain no-repeat}
 .auth-error{margin:.5rem 0 0;font-size:.875rem;color:var(--color-danger);background:var(--color-danger-bg);padding:.5rem .75rem;border-radius:var(--radius-sm)}
-.auth-submit{margin-top:1rem;width:100%;padding:.75rem 1rem;border:none;border-radius:var(--radius-md);background:var(--color-primary);color:var(--color-text-inverse);font-weight:600;font-size:1rem;cursor:pointer;transition:all var(--transition-fast)}
+.auth-submit{margin-top:1.25rem;width:100%;padding:.75rem 1rem;border:none;border-radius:var(--radius-md);background:var(--color-primary);color:var(--color-text-inverse);font-weight:600;font-size:1rem;cursor:pointer;transition:all var(--transition-fast)}
 .auth-submit:hover:not(:disabled){background:var(--color-primary-dark);box-shadow:var(--shadow-md)}
 .auth-submit:active:not(:disabled){transform:scale(.98)}
 .auth-submit:disabled{opacity:.55;cursor:not-allowed}
 .auth-footer{margin:1.5rem 0 0;text-align:center;font-size:.875rem;color:var(--color-text-muted)}
 .auth-footer a{color:var(--color-primary);font-weight:500}
-@media (max-width:480px){.auth-card{padding:1.25rem;border-radius:var(--radius-md)}.auth-brand{height:80px}.auth-title{font-size:1.15rem}}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media(max-width:768px){
+  .auth-page{grid-template-columns:1fr}
+  .auth-vine{display:none}
+  .auth-panel--form{order:1;padding:2rem 1.5rem;min-height:auto}
+  .auth-panel--brand{order:2;min-height:auto;padding:2.5rem 1.5rem 2rem}
+  .auth-panel__features{display:flex}
+  .auth-panel__desc{display:none}
+  .auth-panel__title{font-size:1.3rem}
+}
+@media(max-width:480px){
+  .auth-panel--brand{padding:2rem 1.25rem 1.75rem}
+  .auth-panel__logo{max-width:150px}
+  .auth-panel__title{font-size:1.15rem}
+  .auth-form-title{font-size:1.25rem}
+  .auth-panel--form{padding:1.75rem 1.25rem}
+}
