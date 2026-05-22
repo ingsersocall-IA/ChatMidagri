@@ -1,0 +1,272 @@
+<div class="layout">
+  @if (sidebarMobileOpen()) { <div class="sidebar-overlay" (click)="closeSidebar()"></div> }
+
+  <aside class="sidebar" [class.sidebar--open]="sidebarMobileOpen()" [class.sidebar--collapsed]="sidebarCollapsed()">
+    @if (!sidebarCollapsed()) {
+      <div class="sidebar__head"><img class="sidebar__logo" [src]="logoSrc()" alt="MIDAGRI" (error)="onLogoError('logo')"/></div>
+
+      <div class="sidebar__actions">
+        <button type="button" class="btn-new" (click)="newChat()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nuevo chat
+        </button>
+        <button type="button" class="btn-folder" (click)="openCreateFolderDialog()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M12 11v6M9 14h6"/></svg>Nueva carpeta
+        </button>
+        <div class="sidebar__search">
+          <svg class="sidebar__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="sidebar__search-input" placeholder="Buscar conversaciones..." [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)"/>
+          @if (searchQuery()) { <button type="button" class="sidebar__search-clear" (click)="clearSearch()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button> }
+        </div>
+      </div>
+
+      <nav class="conv-list" aria-label="Historial" (scroll)="closeConvMenu()">
+        <div class="section-label section-label--collapsible" [class.drop-active]="dragOverFolderId()==='root'" (click)="toggleRootCollapse()" (dragover)="onFolderDragOver($event,'root')" (dragleave)="onFolderDragLeave('root')" (drop)="onFolderDrop('root')">
+          <span class="section-label__left"><span class="folder-block__toggle">{{ rootCollapsed() ? '▸' : '▾' }}</span>Sin carpeta</span>
+          <span class="section-label__count">{{ filteredRootConversations().length }}</span>
+        </div>
+
+        @if (!rootCollapsed()) {
+        @for (c of filteredRootConversations(); track c.id) {
+          <div class="conv-item-wrap">
+            <div class="history-item" [class.history-item--active]="c.id===activeId()" (click)="selectConversation(c.id)" (mouseenter)="hoveredConvId.set(c.id)" (mouseleave)="hoveredConvId.set(null); openConvMenuId.set(null)" draggable="true" (dragstart)="onConvDragStart(c.id)" (dragend)="onConvDragEnd()">
+              <div class="history-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+              <div class="history-item__content"><p class="history-item__preview">{{ c.title }}</p><span class="history-item__time">{{ formatTime(c.createdAt) }}</span></div>
+              <div class="history-item__actions" [class.visible]="hoveredConvId()===c.id || c.id===activeId()">
+                <button class="history-item__menu-btn" (click)="toggleConvMenu(c.id,$event)" title="Opciones"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button>
+                @if (openConvMenuId()===c.id) {
+                  <div class="conv-dropdown conv-dropdown--fixed" [style.top.px]="dropdownPos()?.top" [style.left.px]="dropdownPos()?.left" (click)="$event.stopPropagation()">
+                    <button class="conv-dropdown__item" (click)="selectConversation(c.id); closeConvMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 9V7a2 2 0 0 0-2-2h-6l-4-4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"/><path d="M14 14h6m-3-3v6"/></svg>Abrir</button>
+                    <div class="conv-dropdown__separator"></div>
+                    <button class="conv-dropdown__item" (click)="moveConversationTo(c,null); closeConvMenu()">Mover a: Sin carpeta</button>
+                    @for (f of folders(); track f.id) { <button class="conv-dropdown__item" (click)="moveConversationTo(c,f.id); closeConvMenu()">Mover a: {{ f.name }}</button> }
+                    <div class="conv-dropdown__separator"></div>
+                    <button class="conv-dropdown__item conv-dropdown__item--danger" (click)="deleteConversation(c); closeConvMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>Eliminar</button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+        } <!-- /rootCollapsed -->
+
+        @for (folder of folders(); track folder.id) {
+          <section class="folder-block" [class.drop-active]="dragOverFolderId()===folder.id" (dragover)="onFolderDragOver($event,folder.id)" (dragleave)="onFolderDragLeave(folder.id)" (drop)="onFolderDrop(folder.id)">
+            <div class="folder-block__head" (click)="toggleFolderCollapse(folder.id)">
+              <span class="folder-block__toggle">{{ isFolderCollapsed(folder.id) ? '▸' : '▾' }}</span>
+              <span class="folder-block__name">{{ folder.name }}</span>
+              <span class="folder-block__count">{{ convCountForFolder(folder.id) }}</span>
+              <div class="folder-block__actions">
+                <button type="button" (click)="openRenameFolderDialog(folder); $event.stopPropagation()">✏️</button>
+                <button type="button" (click)="deleteFolder(folder); $event.stopPropagation()">🗑️</button>
+              </div>
+            </div>
+            @if (!isFolderCollapsed(folder.id)) {
+              @for (c of conversationsByFolder(folder.id); track c.id) {
+                <div class="conv-item-wrap">
+                  <div class="history-item" [class.history-item--active]="c.id===activeId()" (click)="selectConversation(c.id)" (mouseenter)="hoveredConvId.set(c.id)" (mouseleave)="hoveredConvId.set(null); openConvMenuId.set(null)" draggable="true" (dragstart)="onConvDragStart(c.id)" (dragend)="onConvDragEnd()">
+                    <div class="history-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+                    <div class="history-item__content"><p class="history-item__preview">{{ c.title }}</p><span class="history-item__time">{{ formatTime(c.createdAt) }}</span></div>
+                    <div class="history-item__actions" [class.visible]="hoveredConvId()===c.id || c.id===activeId()">
+                      <button class="history-item__menu-btn" (click)="toggleConvMenu(c.id,$event)" title="Opciones"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button>
+                      @if (openConvMenuId()===c.id) {
+                        <div class="conv-dropdown conv-dropdown--fixed" [style.top.px]="dropdownPos()?.top" [style.left.px]="dropdownPos()?.left" (click)="$event.stopPropagation()">
+                          <button class="conv-dropdown__item" (click)="selectConversation(c.id); closeConvMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 9V7a2 2 0 0 0-2-2h-6l-4-4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"/><path d="M14 14h6m-3-3v6"/></svg>Abrir</button>
+                          <div class="conv-dropdown__separator"></div>
+                          <button class="conv-dropdown__item" (click)="moveConversationTo(c,null); closeConvMenu()">Mover a: Sin carpeta</button>
+                          @for (f of folders(); track f.id) { <button class="conv-dropdown__item" (click)="moveConversationTo(c,f.id); closeConvMenu()">Mover a: {{ f.name }}</button> }
+                          <div class="conv-dropdown__separator"></div>
+                          <button class="conv-dropdown__item conv-dropdown__item--danger" (click)="deleteConversation(c); closeConvMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>Eliminar</button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            }
+          </section>
+        }
+      </nav>
+
+      <div class="sidebar__foot">
+        <button type="button" class="sidebar__foot-btn" (click)="toggleTheme()" [title]="isDarkTheme() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+          @if (isDarkTheme()) {
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+              <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          }
+        </button>
+        <button type="button" class="sidebar__foot-btn sidebar__foot-btn--danger" (click)="logout()" title="Cerrar sesión">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </div>
+    } @else {
+      <div class="sidebar__collapsed-inner">
+        <button type="button" class="sidebar__expand-btn" (click)="toggleSidebar()" title="Expandir">☰</button>
+        <button type="button" class="sidebar__collapsed-action" (click)="newChat()" title="Nuevo chat">✚</button>
+      </div>
+    }
+  </aside>
+
+  <main class="main">
+    <header class="main__header">
+      <div class="main__header-inner">
+        <div class="main__header-left">
+          @if (!sidebarCollapsed()) {
+            <button type="button" class="main__menu-btn" (click)="toggleSidebar()">☰</button>
+          }
+          <img class="main__avatar" [src]="assistantIconSrc()" width="36" height="36" alt="" (error)="onLogoError('icon')"/>
+          <div class="main__header-text"><h1 class="main__title">Asistente jurídico MIDAGRI</h1><p class="main__hint">Consultas sobre normativa y trámites agrarios</p></div>
+        </div>
+        <div class="main__header-right">
+          <button type="button" class="main__theme-btn" (click)="toggleTheme()" [title]="isDarkTheme() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+            @if (isDarkTheme()) {
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            }
+          </button>
+          <button type="button" class="main__logout-btn" (click)="logout()" title="Cerrar sesión">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
+          <img class="main__session-icon" src="/assets/branding/icono_login_.png" alt="Sesión"/>
+        </div>
+      </div>
+    </header>
+
+    <div class="ribbon" aria-hidden="true"></div>
+
+    <div class="thread-wrapper">
+      <div class="thread" #threadEl (scroll)="onThreadScroll()">
+        <div class="thread__inner">
+          @if (displayedMessages().length===0 && !streamingText()) {
+            <div class="thread__empty">
+              <span class="thread__empty-icon">⚖️</span>
+              <p>Comience una conversación con el asistente jurídico.</p>
+              <p class="thread__empty-sub">Pruebe con una de estas consultas:</p>
+              <div class="thread__suggestions">
+                @for (q of suggestionQuestions; track q) { <button type="button" class="suggestion-chip" (click)="useSuggestion(q)">{{ q }}</button> }
+              </div>
+            </div>
+          }
+          @for (m of displayedMessages(); track m.id) {
+            <div id="msg-{{ m.id }}" class="message-row" [class.message-row--user]="m.role==='user'" [class.message-row--assistant]="m.role==='assistant'">
+              @if (m.role==='assistant') { <img class="message-avatar" [src]="assistantIconSrc()" alt="" (error)="onLogoError('icon')"/> }
+              <div class="message-content">
+                <midagri-markdown-bubble [role]="m.role" [content]="m.content" [speakingText]="m.role==='assistant' ? speakingText() : null"/>
+                @if (m.role==='assistant') {
+                  <div class="message-actions"><button type="button" class="message-actions__btn" (click)="copyMessage(m.id,m.content)" [attr.aria-label]="copiedMessageId()===m.id?'Copiado':'Copiar'">{{ copiedMessageId()===m.id ? '✓' : '📋' }}</button></div>
+                }
+              </div>
+            </div>
+          }
+          @if (assistantThinking()) {
+            <div class="message-row message-row--assistant">
+              <img class="message-avatar" [src]="assistantIconSrc()" alt="" (error)="onLogoError('icon')"/>
+              <div class="thinking-bubble"><span>Analizando</span><span class="thinking-dots"><i></i><i></i><i></i></span></div>
+            </div>
+          }
+          @if (streamingText()) {
+            <div class="message-row message-row--assistant">
+              <img class="message-avatar" [src]="assistantIconSrc()" alt="" (error)="onLogoError('icon')"/>
+              <div class="message-content"><midagri-markdown-bubble role="assistant" [content]="streamingText()" [speakingText]="speakingText()"/></div>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (showScrollNav()) {
+        <nav class="scroll-nav" aria-label="Navegación de preguntas">
+          <div class="scroll-nav__header"><span class="scroll-nav__header-icon">📑</span><span class="scroll-nav__header-text">Preguntas</span></div>
+          <div class="scroll-nav__list">
+            @for (q of userQuestions(); track q.id; let i=$index) {
+              <div class="scroll-nav__item" [class.scroll-nav__item--active]="hoveredNavId()===q.id" (mouseenter)="hoveredNavId.set(q.id)" (mouseleave)="hoveredNavId.set(null)" (click)="scrollToMessage(q.id)">
+                <span class="scroll-nav__num">{{ questionNumber(i) }}</span>
+                <span class="scroll-nav__text">{{ truncateQuestion(q.content) }}</span>
+                <span class="scroll-nav__indicator"></span>
+              </div>
+              @if (hoveredNavId()===q.id) { <div class="scroll-nav__popover">{{ q.content }}</div> }
+            }
+          </div>
+        </nav>
+      }
+    </div>
+
+    @if (showScrollDown()) { <button type="button" class="scroll-down-btn" [class.scroll-down-btn--with-nav]="showScrollNav()" (click)="scrollToBottom()">↓</button> }
+
+    <footer class="composer" [class.composer--with-nav]="showScrollNav()">
+      <div class="composer__card">
+        <textarea #composerInput class="composer__input" rows="1" [(ngModel)]="draft" placeholder="Haz una pregunta…" [disabled]="sending()" enterkeyhint="send" inputmode="text" autocomplete="off" (keydown.control.enter)="send()" (keydown.meta.enter)="send()" (keydown.enter)="onEnterKey($event)" (input)="autoResizeTextarea()"></textarea>
+        <div class="composer__bar">
+          <div class="composer__bar-left">
+            <button type="button" class="composer__mic" [class.composer__mic--recording]="isRecording()" [disabled]="sending()" (click)="toggleRecording()" [attr.aria-label]="isRecording()?'Detener grabacion':'Grabar consulta'">
+              @if (isRecording()) {
+                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              }
+            </button>
+            @if (isRecording()) {
+              <span class="composer__recording-hint">Pulse ⏹ para detener</span>
+            }
+          </div>
+          <div class="composer__bar-right">
+            <button type="button" class="composer__tts" [class.composer__tts--active]="ttsEnabled()" (click)="toggleTts()" [attr.aria-label]="ttsEnabled()?'Desactivar voz':'Activar voz de respuesta'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            </button>
+            <button type="button" class="composer__send" [disabled]="sending() || draft.trim().length<3" (click)="send()" [attr.aria-label]="sending()?'Enviando…':'Enviar'">
+              @if (sending()) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+      <p class="composer__disclaimer">Ministerio de Desarrollo Agrario y Riego (MIDAGRI). Este asistente no sustituye un dictamen legal oficial.</p>
+    </footer>
+  </main>
+</div>
+
+@if (folderDialogOpen()) {
+  <div class="dialog-backdrop" (click)="closeFolderDialog()">
+    <div class="dialog-card" (click)="$event.stopPropagation()">
+      <h3 class="dialog-title">{{ folderDialogMode()==='create' ? 'Poner nombre a la carpeta' : 'Renombrar carpeta' }}</h3>
+      <input class="dialog-input" [(ngModel)]="folderNameDraft" placeholder="Nombre de carpeta" maxlength="120" (keydown.enter)="submitFolderDialog()"/>
+      <div class="dialog-actions">
+        <button type="button" class="btn-ghost" (click)="closeFolderDialog()">Cancelar</button>
+        <button type="button" class="dialog-submit" [disabled]="folderNameDraft.trim().length<2" (click)="submitFolderDialog()">Guardar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (toasts().length>0) {
+  <div class="toast-container">
+    @for (t of toasts(); track t.id) { <div class="toast" [class.toast--success]="t.type==='success'" [class.toast--error]="t.type==='error'" [class.toast--info]="t.type==='info'">{{ t.message }}</div> }
+  </div>
+}
