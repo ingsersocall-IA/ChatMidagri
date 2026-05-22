@@ -76,6 +76,8 @@ export class ChatComponent implements OnDestroy {
   readonly folderDialogFolderId = signal<string | null>(null);
   readonly isDarkTheme = signal(localStorage.getItem('theme') === 'dark');
   readonly sidebarCollapsed = signal(false);
+  readonly navCollapsed = signal(false);
+  readonly navMobileOpen = signal(false);
   readonly sidebarMobileOpen = signal(false);
   readonly searchQuery = signal('');
   readonly copiedMessageId = signal<string | null>(null);
@@ -198,6 +200,8 @@ export class ChatComponent implements OnDestroy {
     this.openConvMenuId.set(null);
     void this.router.navigate(['/chat', id]);
   }
+
+  toggleNav(): void { this.navCollapsed.update(v => !v); }
 
   toggleSidebar(): void {
     if (window.innerWidth <= 768) {
@@ -388,7 +392,7 @@ export class ChatComponent implements OnDestroy {
       await this.refreshSidebarData();
       if (this.activeId()) { const msgs = await this.chat.getMessages(this.activeId()!); this.messages.set(msgs); }
       this.optimisticMessages.set([]);
-      this.scrollThreadToBottom();
+      setTimeout(() => { const el = this.threadEl?.nativeElement; if (el) el.scrollTop = el.scrollHeight; }, 50);
     }
   }
 
@@ -430,6 +434,9 @@ export class ChatComponent implements OnDestroy {
   }
 
   /* ─── Toast ─── */
+  likeMessage(_id: string): void { this.showToast('¡Gracias por tu valoración!', 'success'); }
+  dislikeMessage(_id: string): void { this.showToast('Gracias, usaremos tu opinión para mejorar', 'info'); }
+
   copyMessage(messageId: string, content: string): void {
     navigator.clipboard.writeText(content).then(() => {
       this.copiedMessageId.set(messageId);
@@ -507,9 +514,20 @@ export class ChatComponent implements OnDestroy {
   onEnterKey(event: Event): void {
     const e = event as KeyboardEvent;
     if (e.shiftKey || e.ctrlKey || e.metaKey) return;
-    if (window.innerWidth <= 768 || 'ontouchstart' in window) {
-      e.preventDefault();
-      void this.send();
-    }
+    e.preventDefault();
+    void this.send();
+  }
+
+  insertNewline(event: Event): void {
+    event.preventDefault();
+    const el = this.composerInput?.nativeElement;
+    if (!el) return;
+    const start = el.selectionStart ?? this.draft.length;
+    const end = el.selectionEnd ?? this.draft.length;
+    this.draft = this.draft.substring(0, start) + '\n' + this.draft.substring(end);
+    queueMicrotask(() => {
+      el.selectionStart = el.selectionEnd = start + 1;
+      this.autoResizeTextarea();
+    });
   }
 }

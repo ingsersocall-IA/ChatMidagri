@@ -6,7 +6,7 @@
       <div class="sidebar__head"><img class="sidebar__logo" [src]="logoSrc()" alt="MIDAGRI" (error)="onLogoError('logo')"/></div>
 
       <div class="sidebar__actions">
-        <button type="button" class="btn-new" (click)="newChat()">
+        <button type="button" class="btn-new" (click)="newChat()" data-tooltip="Nueva conversación">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nuevo chat
         </button>
         <button type="button" class="btn-folder" (click)="openCreateFolderDialog()">
@@ -56,8 +56,8 @@
               <span class="folder-block__name">{{ folder.name }}</span>
               <span class="folder-block__count">{{ convCountForFolder(folder.id) }}</span>
               <div class="folder-block__actions">
-                <button type="button" (click)="openRenameFolderDialog(folder); $event.stopPropagation()">✏️</button>
-                <button type="button" (click)="deleteFolder(folder); $event.stopPropagation()">🗑️</button>
+                <button type="button" class="folder-block__action-btn" (click)="openRenameFolderDialog(folder);$event.stopPropagation()" title="Renombrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button type="button" class="folder-block__action-btn folder-block__action-btn--danger" (click)="deleteFolder(folder);$event.stopPropagation()" title="Eliminar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg></button>
               </div>
             </div>
             @if (!isFolderCollapsed(folder.id)) {
@@ -88,7 +88,7 @@
       </nav>
 
       <div class="sidebar__foot">
-        <button type="button" class="sidebar__foot-btn" (click)="toggleTheme()" [title]="isDarkTheme() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+        <button type="button" class="sidebar__foot-btn" (click)="toggleTheme()" [attr.data-tooltip]="isDarkTheme() ? 'Modo claro' : 'Modo oscuro'">
           @if (isDarkTheme()) {
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="5"/>
@@ -103,7 +103,7 @@
             </svg>
           }
         </button>
-        <button type="button" class="sidebar__foot-btn sidebar__foot-btn--danger" (click)="logout()" title="Cerrar sesión">
+        <button type="button" class="sidebar__foot-btn sidebar__foot-btn--danger" (click)="logout()" data-tooltip="Cerrar sesión">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <polyline points="16 17 21 12 16 7"/>
@@ -130,7 +130,7 @@
           <div class="main__header-text"><h1 class="main__title">Asistente jurídico MIDAGRI</h1><p class="main__hint">Consultas sobre normativa y trámites agrarios</p></div>
         </div>
         <div class="main__header-right">
-          <button type="button" class="main__theme-btn" (click)="toggleTheme()" [title]="isDarkTheme() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+          <button type="button" class="main__theme-btn" (click)="toggleTheme()" [attr.data-tooltip]="isDarkTheme() ? 'Modo claro' : 'Modo oscuro'" data-tooltip-pos="bottom">
             @if (isDarkTheme()) {
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="5"/>
@@ -145,7 +145,13 @@
               </svg>
             }
           </button>
-          <button type="button" class="main__logout-btn" (click)="logout()" title="Cerrar sesión">
+          @if (showScrollNav()) {
+            <button type="button" class="main__nav-btn" (click)="navMobileOpen.set(true)" aria-label="Ver preguntas">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+              <span class="main__nav-btn-badge">{{ userQuestions().length }}</span>
+            </button>
+          }
+          <button type="button" class="main__logout-btn" (click)="logout()" data-tooltip="Cerrar sesión" data-tooltip-pos="bottom">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
               <polyline points="16 17 21 12 16 7"/>
@@ -178,7 +184,21 @@
               <div class="message-content">
                 <midagri-markdown-bubble [role]="m.role" [content]="m.content"/>
                 @if (m.role==='assistant') {
-                  <div class="message-actions"><button type="button" class="message-actions__btn" (click)="copyMessage(m.id,m.content)" [attr.aria-label]="copiedMessageId()===m.id?'Copiado':'Copiar'">{{ copiedMessageId()===m.id ? '✓' : '📋' }}</button></div>
+                  <div class="message-actions">
+                    <button type="button" class="message-actions__btn" [class.message-actions__btn--copied]="copiedMessageId()===m.id" (click)="copyMessage(m.id,m.content)" aria-label="Copiar">
+                      @if (copiedMessageId()===m.id) {
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                      }
+                    </button>
+                    <button type="button" class="message-actions__btn" (click)="likeMessage(m.id)" aria-label="Me gusta">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+                    </button>
+                    <button type="button" class="message-actions__btn" (click)="dislikeMessage(m.id)" aria-label="No me gusta">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z"/></svg>
+                    </button>
+                  </div>
                 }
               </div>
             </div>
@@ -198,31 +218,50 @@
         </div>
       </div>
 
+      @if (showScrollNav() && navMobileOpen()) {
+        <div class="nav-mobile-overlay" (click)="navMobileOpen.set(false)"></div>
+      }
       @if (showScrollNav()) {
-        <nav class="scroll-nav" aria-label="Navegación de preguntas">
-          <div class="scroll-nav__header"><span class="scroll-nav__header-icon">📑</span><span class="scroll-nav__header-text">Preguntas</span></div>
+        <nav class="scroll-nav" [class.scroll-nav--collapsed]="navCollapsed()" [class.scroll-nav--mobile-open]="navMobileOpen()" aria-label="Navegación de preguntas">
+          <div class="scroll-nav__handle"></div>
+          <div class="scroll-nav__header" (click)="navCollapsed() && toggleNav()">
+            <button type="button" class="scroll-nav__header-icon" (click)="toggleNav(); $event.stopPropagation()" [attr.data-tooltip]="navCollapsed() ? 'Expandir preguntas' : 'Contraer preguntas'" data-tooltip-pos="bottom">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+            </button>
+            @if (!navCollapsed() || navMobileOpen()) {
+              <span class="scroll-nav__header-text">Preguntas</span>
+              <span class="scroll-nav__header-count">{{ userQuestions().length }}</span>
+              <button type="button" class="scroll-nav__close-btn" (click)="navMobileOpen.set(false)" aria-label="Cerrar">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            }
+          </div>
+          @if (!navCollapsed() || navMobileOpen()) {
           <div class="scroll-nav__list">
             @for (q of userQuestions(); track q.id; let i=$index) {
-              <div class="scroll-nav__item" [class.scroll-nav__item--active]="hoveredNavId()===q.id" (mouseenter)="hoveredNavId.set(q.id)" (mouseleave)="hoveredNavId.set(null)" (click)="scrollToMessage(q.id)">
+              <div class="scroll-nav__item" [class.scroll-nav__item--active]="hoveredNavId()===q.id" (mouseenter)="hoveredNavId.set(q.id)" (mouseleave)="hoveredNavId.set(null)" (click)="scrollToMessage(q.id); navMobileOpen.set(false)">
                 <span class="scroll-nav__num">{{ questionNumber(i) }}</span>
                 <span class="scroll-nav__text">{{ truncateQuestion(q.content) }}</span>
-                <span class="scroll-nav__indicator"></span>
+                <span class="scroll-nav__arrow">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </span>
               </div>
               @if (hoveredNavId()===q.id) { <div class="scroll-nav__popover">{{ q.content }}</div> }
             }
           </div>
+          } <!-- /navCollapsed -->
         </nav>
       }
     </div>
 
-    @if (showScrollDown()) { <button type="button" class="scroll-down-btn" [class.scroll-down-btn--with-nav]="showScrollNav()" (click)="scrollToBottom()">↓</button> }
+    @if (showScrollDown()) { <button type="button" class="scroll-down-btn" [class.scroll-down-btn--with-nav]="showScrollNav() && !navCollapsed()" [class.scroll-down-btn--with-nav-collapsed]="showScrollNav() && navCollapsed()" (click)="scrollToBottom()">↓</button> }
 
-    <footer class="composer" [class.composer--with-nav]="showScrollNav()">
+    <footer class="composer" [class.composer--with-nav]="showScrollNav() && !navCollapsed()" [class.composer--with-nav-collapsed]="showScrollNav() && navCollapsed()">
       <div class="composer__card">
-        <textarea #composerInput class="composer__input" rows="1" [(ngModel)]="draft" placeholder="Haz una pregunta…" [disabled]="sending()" enterkeyhint="send" inputmode="text" autocomplete="off" (keydown.control.enter)="send()" (keydown.meta.enter)="send()" (keydown.enter)="onEnterKey($event)" (input)="autoResizeTextarea()"></textarea>
+        <textarea #composerInput class="composer__input" rows="1" [(ngModel)]="draft" placeholder="Haz una pregunta…" [disabled]="sending()" enterkeyhint="send" inputmode="text" autocomplete="off" (keydown.control.enter)="insertNewline($event)" (keydown.meta.enter)="insertNewline($event)" (keydown.enter)="onEnterKey($event)" (input)="autoResizeTextarea()"></textarea>
         <div class="composer__bar">
           <div class="composer__bar-left">
-            <button type="button" class="composer__mic" [class.composer__mic--recording]="isRecording()" [disabled]="sending()" (click)="toggleRecording()" [attr.aria-label]="isRecording()?'Detener grabacion':'Grabar consulta'">
+            <button type="button" class="composer__mic" [class.composer__mic--recording]="isRecording()" [disabled]="sending()" (click)="toggleRecording()" [attr.aria-label]="isRecording()?'Detener grabacion':'Grabar consulta'" [attr.data-tooltip]="isRecording()?'Detener':'Micrófono'">
               @if (isRecording()) {
                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
               } @else {
@@ -234,10 +273,10 @@
             }
           </div>
           <div class="composer__bar-right">
-            <button type="button" class="composer__tts" [class.composer__tts--active]="ttsEnabled()" (click)="toggleTts()" [attr.aria-label]="ttsEnabled()?'Desactivar voz':'Activar voz de respuesta'">
+            <button type="button" class="composer__tts" [class.composer__tts--active]="ttsEnabled()" (click)="toggleTts()" [attr.aria-label]="ttsEnabled()?'Desactivar voz':'Activar voz de respuesta'" [attr.data-tooltip]="ttsEnabled()?'Desactivar voz':'Voz de respuesta'">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
             </button>
-            <button type="button" class="composer__send" [disabled]="sending() || draft.trim().length<3" (click)="send()" [attr.aria-label]="sending()?'Enviando…':'Enviar'">
+            <button type="button" class="composer__send" [disabled]="sending() || draft.trim().length<3" (click)="send()" [attr.aria-label]="sending()?'Enviando…':'Enviar'" [attr.data-tooltip]="sending()?'Enviando…':'Enviar'">
               @if (sending()) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               } @else {
