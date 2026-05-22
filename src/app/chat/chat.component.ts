@@ -12,14 +12,18 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { AuthService } from '../services/auth.service';
+import { firstValueFrom } from 'rxjs';
+import { io, Socket } from 'socket.io-client';
+import { environment } from '../../environments/environment';
 import {
   ChatService,
   ConversationDto,
   FolderDto,
   MessageDto,
+  NotificationDto,
 } from '../services/chat.service';
 import { SpeechService } from '../services/speech.service';
+import { AuthService } from '../services/auth.service';
 import { MarkdownBubbleComponent } from '../shared/markdown-bubble.component';
 import { ProfileModalComponent } from '../profile/profile-modal.component';
 import { ShareModalComponent } from '../share/share-modal.component';
@@ -59,6 +63,7 @@ export class ChatComponent implements OnDestroy {
 
   private sub?: Subscription;
   private speakingSub?: Subscription;
+  private socket?: Socket;
   @ViewChild('threadEl') threadEl?: ElementRef<HTMLDivElement>;
   @ViewChild('composerInput') composerInput?: ElementRef<HTMLTextAreaElement>;
   @ViewChild(ProfileModalComponent) profileModal?: ProfileModalComponent;
@@ -76,6 +81,9 @@ export class ChatComponent implements OnDestroy {
   readonly ttsEnabled = signal(false);
   readonly audioPlaying = signal(false);
   readonly speakingText = signal<string | null>(null);
+  readonly notifications = signal<NotificationDto[]>([]);
+  readonly unreadNotifCount = signal(0);
+  readonly notifOpen = signal(false);
   readonly logoSrc = signal('/assets/branding/ministerio.png');
   readonly assistantIconSrc = signal('/assets/branding/ICON_CHATMIDAGRI.png');
   readonly draggingConvId = signal<string | null>(null);
@@ -145,11 +153,14 @@ export class ChatComponent implements OnDestroy {
     this.speakingSub = this.speech.speakingText$.subscribe((text) => {
       this.speakingText.set(text);
     });
+    this.connectSocket();
+    void this.loadNotifications();
   }
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
     this.speakingSub?.unsubscribe();
+    this.socket?.disconnect();
   }
 
   @HostListener('document:keydown.escape')
@@ -492,6 +503,70 @@ export class ChatComponent implements OnDestroy {
 
   openShare(conversationId: string): void {
     this.shareModal?.openModal(conversationId);
+  }
+
+  /* ─── Socket.IO ─── */
+
+  private connectSocket(): void {
+    const token = this.auth.token();
+    if (!token) return;
+    const base = environment.apiBase.replace(/\/$/, '');
+    this.socket = io(base, { auth: { token } });
+    this.socket.on('new_message', (data: { conversationId: string; messages: MessageDto[] }) => {
+      if (this.activeId() === data.conversationId) {
+        const current = this.messages();
+        const existingIds = new Set(current.map((m) => m.id));
+        const newMsgs = data.messages.filter((m) => !existingIds.has(m.id));
+        if (newMsgs.length > 0) {
+          this.messages.update((msgs) => [...msgs, ...newMsgs]);
+          this.scrollThreadToBottom();
+        }
+      }
+      void this.refreshSidebarData();
+    });
+    this.socket.on('notification', () => {
+      void this.loadNotifications();
+    });
+    this.socket.on('disconnect', () => {
+      setTimeout(() => this.connectSocket(), 3000);
+    });
+  }
+
+  /* ─── Notifications ─── */
+
+  async loadNotifications(): Promise<void> {
+    try {
+      const [list, count] = await Promise.all([
+        firstValueFrom(this.chat.getNotifications()),
+        firstValueFrom(this.chat.getUnreadNotificationCount()),
+      ]);
+      this.notifications.set(list);
+      this.unreadNotifCount.set(count);
+    } catch { /* ignore */ }
+  }
+
+  toggleNotif(): void {
+    this.notifOpen.update((v) => !v);
+  }
+
+  async acceptNotif(notif: NotificationDto): Promise<void> {
+    try {
+      await firstValueFrom(this.chat.acceptNotification(notif.id));
+      const data = notif.data as { conversationId?: string };
+      if (data.conversationId) {
+        await this.router.navigate(['/chat', data.conversationId]);
+      }
+      await this.loadNotifications();
+      await this.refreshSidebarData();
+    } catch { /* ignore */ }
+  }
+
+  async markAllNotifRead(): Promise<void> {
+    try {
+      await firstValueFrom(this.chat.markAllNotificationsRead());
+      this.unreadNotifCount.set(0);
+      this.notifications.update((list) => list.map((n) => ({ ...n, read: true })));
+    } catch { /* ignore */ }
   }
 
   /* ─── Scroll ─── */

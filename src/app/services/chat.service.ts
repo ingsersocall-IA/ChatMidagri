@@ -10,6 +10,8 @@ export interface ConversationDto {
   folderId: string | null;
   createdAt: string;
   userId?: string;
+  isShared?: boolean;
+  isParticipant?: boolean;
 }
 
 export interface FolderDto {
@@ -37,6 +39,15 @@ export interface SharedUserDto {
   email: string;
   name: string | null;
   sharedAt: string;
+}
+
+export interface NotificationDto {
+  id: string;
+  type: string;
+  data: Record<string, unknown>;
+  read: boolean;
+  status: string;
+  createdAt: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -201,5 +212,27 @@ export class ChatService {
 
   unshareConversation(conversationId: string, userId: string) {
     return this.http.delete(this.api(`/api/conversations/${conversationId}/share/${userId}`));
+  }
+
+  /* ─── Notifications ─── */
+
+  getNotifications() {
+    return this.http.get<NotificationDto[]>(this.api('/api/notifications'));
+  }
+
+  getUnreadNotificationCount() {
+    return this.http.get<number>(this.api('/api/notifications/unread-count'));
+  }
+
+  markNotificationRead(id: string) {
+    return this.http.patch(this.api(`/api/notifications/${id}/read`), {});
+  }
+
+  markAllNotificationsRead() {
+    return this.http.post(this.api('/api/notifications/read-all'), {});
+  }
+
+  acceptNotification(id: string) {
+    return this.http.post(this.api(`/api/notifications/${id}/accept`), {});
   }
 }

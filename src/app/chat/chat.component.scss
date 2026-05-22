@@ -125,6 +125,20 @@
 .main__profile-btn{display:flex;align-items:center;gap:.4rem;padding:.3rem .65rem;border:1px solid var(--color-border);background:transparent;color:var(--color-text);border-radius:var(--radius-sm);cursor:pointer;transition:all var(--transition-fast);flex-shrink:0;font-size:.8125rem}
 .main__profile-btn:hover{background:var(--color-primary-bg);color:var(--color-primary);border-color:var(--color-primary)}
 .main__user-name{max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.main__notif-btn{position:relative;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid var(--color-border);background:transparent;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0;transition:all var(--transition-fast)}
+.main__notif-btn:hover{background:var(--color-primary-bg)}
+.main__notif-badge{position:absolute;top:-4px;right:-4px;background:#dc2626;color:#fff;font-size:.625rem;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.notif-dropdown{position:absolute;top:60px;right:1rem;width:340px;max-height:400px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);z-index:50;overflow:hidden}
+.notif-dropdown__head{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-bottom:1px solid var(--color-border-light);font-weight:600;font-size:.875rem}
+.notif-mark-all{background:none;border:none;color:var(--color-primary);font-size:.75rem;cursor:pointer}
+.notif-mark-all:hover{text-decoration:underline}
+.notif-dropdown__list{overflow-y:auto;max-height:340px}
+.notif-empty{font-size:.8125rem;color:var(--color-text-muted);text-align:center;padding:1.5rem}
+.notif-item{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-bottom:1px solid var(--color-border-light);gap:.5rem}
+.notif-item--unread{background:var(--color-primary-bg)}
+.notif-item__text{font-size:.8125rem;margin:0;flex:1;min-width:0}
+.notif-accept{padding:.25rem .65rem;border:none;background:var(--color-primary);color:#fff;font-size:.75rem;font-weight:500;border-radius:var(--radius-sm);cursor:pointer;flex-shrink:0}
+.notif-accept:hover{background:var(--color-primary-dark)}
 .main__session-icon{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0}
 .main__logout-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:1px solid var(--color-border);background:transparent;color:var(--color-text-muted);border-radius:50%;cursor:pointer;transition:all var(--transition-fast);flex-shrink:0}
 .main__logout-btn:hover{background:var(--color-primary-bg);color:var(--color-primary);border-color:var(--color-primary)}

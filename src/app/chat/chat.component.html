@@ -29,7 +29,13 @@
         @for (c of filteredRootConversations(); track c.id) {
           <div class="conv-item-wrap">
             <div class="history-item" [class.history-item--active]="c.id===activeId()" (click)="selectConversation(c.id)" (mouseenter)="hoveredConvId.set(c.id)" (mouseleave)="hoveredConvId.set(null); openConvMenuId.set(null)" draggable="true" (dragstart)="onConvDragStart(c.id)" (dragend)="onConvDragEnd()">
-              <div class="history-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+              <div class="history-item__icon">
+                @if (c.isParticipant) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                }
+              </div>
               <div class="history-item__content"><p class="history-item__preview">{{ c.title }}</p><span class="history-item__time">{{ formatTime(c.createdAt) }}</span></div>
               <div class="history-item__actions" [class.visible]="hoveredConvId()===c.id || c.id===activeId()">
                 <button class="history-item__menu-btn" (click)="toggleConvMenu(c.id,$event)" title="Opciones"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button>
@@ -66,7 +72,13 @@
               @for (c of conversationsByFolder(folder.id); track c.id) {
                 <div class="conv-item-wrap">
                   <div class="history-item" [class.history-item--active]="c.id===activeId()" (click)="selectConversation(c.id)" (mouseenter)="hoveredConvId.set(c.id)" (mouseleave)="hoveredConvId.set(null); openConvMenuId.set(null)" draggable="true" (dragstart)="onConvDragStart(c.id)" (dragend)="onConvDragEnd()">
-                    <div class="history-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+              <div class="history-item__icon">
+                @if (c.isParticipant) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                }
+              </div>
                     <div class="history-item__content"><p class="history-item__preview">{{ c.title }}</p><span class="history-item__time">{{ formatTime(c.createdAt) }}</span></div>
                     <div class="history-item__actions" [class.visible]="hoveredConvId()===c.id || c.id===activeId()">
                       <button class="history-item__menu-btn" (click)="toggleConvMenu(c.id,$event)" title="Opciones"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button>
@@ -134,6 +146,10 @@
           <div class="main__header-text"><h1 class="main__title">Asistente jurídico MIDAGRI</h1><p class="main__hint">Consultas sobre normativa y trámites agrarios</p></div>
         </div>
         <div class="main__header-right">
+          <button type="button" class="main__notif-btn" (click)="toggleNotif()" [title]="'Notificaciones (' + unreadNotifCount() + ')'">
+            🔔
+            @if (unreadNotifCount() > 0) { <span class="main__notif-badge">{{ unreadNotifCount() }}</span> }
+          </button>
           <button type="button" class="main__profile-btn" (click)="openProfile()" [title]="'Perfil de ' + userName()">
             <span class="main__user-name">{{ userName() }}</span>
             <img class="main__session-icon" src="/assets/branding/icono_login_.png" alt="Sesión"/>
@@ -163,6 +179,34 @@
         </div>
       </div>
     </header>
+
+    @if (notifOpen()) {
+      <div class="notif-dropdown">
+        <div class="notif-dropdown__head">
+          <span>Notificaciones</span>
+          @if (unreadNotifCount() > 0) {
+            <button type="button" class="notif-mark-all" (click)="markAllNotifRead()">Marcar todo leido</button>
+          }
+        </div>
+        <div class="notif-dropdown__list">
+          @if (notifications().length === 0) {
+            <p class="notif-empty">Sin notificaciones</p>
+          }
+          @for (n of notifications(); track n.id) {
+            <div class="notif-item" [class.notif-item--unread]="!n.read">
+              <p class="notif-item__text">
+                @if (n.type === 'chat_shared') {
+                  {{ n.data?.['sharedByName'] ?? 'Alguien' }} compartio el chat "{{ n.data?.['conversationTitle'] ?? 'Sin titulo' }}" contigo
+                }
+              </p>
+              @if (n.status === 'pending' && n.type === 'chat_shared') {
+                <button type="button" class="notif-accept" (click)="acceptNotif(n)">Aceptar</button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
 
     <div class="ribbon" aria-hidden="true"></div>
 
