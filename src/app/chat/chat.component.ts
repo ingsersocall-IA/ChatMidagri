@@ -21,6 +21,7 @@ import {
 } from '../services/chat.service';
 import { SpeechService } from '../services/speech.service';
 import { MarkdownBubbleComponent } from '../shared/markdown-bubble.component';
+import { ProfileModalComponent } from '../profile/profile-modal.component';
 
 type UiMessage = {
   id: string;
@@ -41,7 +42,7 @@ type Toast = {
 @Component({
   selector: 'midagri-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, MarkdownBubbleComponent],
+  imports: [CommonModule, FormsModule, MarkdownBubbleComponent, ProfileModalComponent],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
 })
@@ -56,6 +57,7 @@ export class ChatComponent implements OnDestroy {
   private speakingSub?: Subscription;
   @ViewChild('threadEl') threadEl?: ElementRef<HTMLDivElement>;
   @ViewChild('composerInput') composerInput?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild(ProfileModalComponent) profileModal?: ProfileModalComponent;
 
   readonly conversations = signal<ConversationDto[]>([]);
   readonly folders = signal<FolderDto[]>([]);
@@ -473,6 +475,12 @@ export class ChatComponent implements OnDestroy {
       this.speakingText.set(null);
     }
     this.ttsEnabled.set(on);
+  }
+
+  readonly userName = computed(() => this.auth.user()?.name ?? 'Usuario');
+
+  openProfile(): void {
+    this.profileModal?.openModal();
   }
 
   /* ─── Scroll ─── */
