@@ -20,6 +20,7 @@ export class RegisterComponent {
   private readonly router = inject(Router);
 
   readonly form = this.fb.nonNullable.group({
+    name: ['', [Validators.maxLength(120)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
@@ -33,9 +34,9 @@ export class RegisterComponent {
       this.form.markAllAsTouched();
       return;
     }
-    const { email, password } = this.form.getRawValue();
+    const { name, email, password } = this.form.getRawValue();
     this.loading = true;
-    this.auth.register(email, password).subscribe({
+    this.auth.register(email, password, name || undefined).subscribe({
       next: () => void this.router.navigateByUrl('/chat'),
       error: (err: { error?: { message?: string | string[] } }) => {
         this.loading = false;

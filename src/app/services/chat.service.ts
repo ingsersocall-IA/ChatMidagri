@@ -9,6 +9,9 @@ export interface ConversationDto {
   title: string;
   folderId: string | null;
   createdAt: string;
+  userId?: string;
+  isShared?: boolean;
+  isParticipant?: boolean;
 }
 
 export interface FolderDto {
@@ -17,10 +20,33 @@ export interface FolderDto {
   createdAt: string;
 }
 
+export interface MessageSender {
+  id: string;
+  email: string;
+  name: string | null;
+}
+
 export interface MessageDto {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  createdAt: string;
+  user: MessageSender | null;
+}
+
+export interface SharedUserDto {
+  id: string;
+  email: string;
+  name: string | null;
+  sharedAt: string;
+}
+
+export interface NotificationDto {
+  id: string;
+  type: string;
+  data: Record<string, unknown>;
+  read: boolean;
+  status: string;
   createdAt: string;
 }
 
@@ -170,5 +196,43 @@ export class ChatService {
         }
       }
     }
+  }
+
+  /* ─── Share ─── */
+
+  getSharedUsers(conversationId: string) {
+    return this.http.get<SharedUserDto[]>(
+      this.api(`/api/conversations/${conversationId}/shared`),
+    );
+  }
+
+  shareConversation(conversationId: string, userId: string) {
+    return this.http.post(this.api(`/api/conversations/${conversationId}/share`), { userId });
+  }
+
+  unshareConversation(conversationId: string, userId: string) {
+    return this.http.delete(this.api(`/api/conversations/${conversationId}/share/${userId}`));
+  }
+
+  /* ─── Notifications ─── */
+
+  getNotifications() {
+    return this.http.get<NotificationDto[]>(this.api('/api/notifications'));
+  }
+
+  getUnreadNotificationCount() {
+    return this.http.get<number>(this.api('/api/notifications/unread-count'));
+  }
+
+  markNotificationRead(id: string) {
+    return this.http.patch(this.api(`/api/notifications/${id}/read`), {});
+  }
+
+  markAllNotificationsRead() {
+    return this.http.post(this.api('/api/notifications/read-all'), {});
+  }
+
+  acceptNotification(id: string) {
+    return this.http.post(this.api(`/api/notifications/${id}/accept`), {});
   }
 }

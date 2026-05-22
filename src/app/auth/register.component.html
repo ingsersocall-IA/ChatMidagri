@@ -43,6 +43,17 @@
       </div>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+        <label class="auth-label" for="reg-name">Nombre (opcional)</label>
+        <input
+          id="reg-name"
+          class="auth-input"
+          type="text"
+          autocomplete="name"
+          formControlName="name"
+          placeholder="Tu nombre"
+          maxlength="120"
+        />
+
         <label class="auth-label" for="reg-email">Correo institucional</label>
         <input
           id="reg-email"

@@ -19,9 +19,18 @@ export class MarkdownBubbleComponent implements AfterViewChecked {
 
   role = input.required<'user' | 'assistant'>();
   content = input.required<string>();
+  speakingText = input<string | null>(null);
 
   html = computed<SafeHtml>(() => {
-    const raw = marked.parse(this.content() ?? '', { async: false }) as string;
+    let text = this.content() ?? '';
+    const speaking = this.speakingText();
+    if (speaking && speaking.length > 0) {
+      text = text.replace(
+        new RegExp(speaking.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+        (_) => `<mark class="speaking-highlight">${speaking}</mark>`,
+      );
+    }
+    const raw = marked.parse(text, { async: false }) as string;
     const clean = DOMPurify.sanitize(raw);
     this.buttonsAdded = false;
     return this.sanitizer.bypassSecurityTrustHtml(clean);

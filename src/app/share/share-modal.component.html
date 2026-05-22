@@ -1,0 +1,60 @@
+@if (open()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Compartir chat</h2>
+        <button type="button" class="modal-close" (click)="closeModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="search-box">
+          <input type="text" class="search-input" [(ngModel)]="searchQuery" (input)="applyFilter()" placeholder="Buscar por nombre o correo..." />
+        </div>
+
+        <!-- Compartido con -->
+        @if (sharedUsers.length > 0) {
+          <div class="section">
+            <h3 class="section-title">Compartido con</h3>
+            <div class="user-list">
+              @for (u of sharedUsers; track u.id) {
+                <div class="user-row">
+                  <midagri-avatar [name]="displayName(u)" size="sm" />
+                  <div class="user-info">
+                    <span class="user-name">{{ displayName(u) }}</span>
+                    <span class="user-email">{{ u.email }}</span>
+                  </div>
+                  <button type="button" class="btn-unshare" (click)="unshare(u.id)" title="Quitar acceso">✕</button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Usuarios para compartir -->
+        <div class="section">
+          <h3 class="section-title">Usuarios</h3>
+          @if (loading()) {
+            <p class="loading-text">Cargando...</p>
+          } @else if (filteredUsers.length === 0) {
+            <p class="empty-text">No se encontraron usuarios.</p>
+          } @else {
+            <div class="user-list">
+              @for (u of filteredUsers; track u.id) {
+                <div class="user-row">
+                  <midagri-avatar [name]="displayName(u)" size="sm" />
+                  <div class="user-info">
+                    <span class="user-name">{{ displayName(u) }}</span>
+                    <span class="user-email">{{ u.email }}</span>
+                  </div>
+                  <button type="button" class="btn-share" (click)="share(u.id)">Compartir</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        @if (error()) { <p class="form-error">{{ error() }}</p> }
+      </div>
+    </div>
+  </div>
+}

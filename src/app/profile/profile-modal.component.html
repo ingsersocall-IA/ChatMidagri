@@ -1,0 +1,66 @@
+@if (open()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Mi cuenta</h2>
+        <button type="button" class="modal-close" (click)="closeModal()" aria-label="Cerrar">&times;</button>
+      </div>
+
+      <div class="modal-tabs">
+        <button type="button" class="modal-tab" [class.modal-tab--active]="tab()==='profile'" (click)="tab.set('profile')">Perfil</button>
+        <button type="button" class="modal-tab" [class.modal-tab--active]="tab()==='password'" (click)="tab.set('password')">Contraseña</button>
+      </div>
+
+      @if (tab() === 'profile') {
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Correo electronico</label>
+            <input type="email" class="form-input" [value]="user?.email" disabled />
+            <p class="form-hint">El correo no se puede cambiar.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="profile-name">Nombre</label>
+            <input id="profile-name" type="text" class="form-input" [(ngModel)]="nameDraft" placeholder="Tu nombre" maxlength="120" />
+          </div>
+
+          @if (error()) { <p class="form-error">{{ error() }}</p> }
+          @if (success()) { <p class="form-success">{{ success() }}</p> }
+
+          <div class="modal-actions">
+            <button type="button" class="btn-ghost" (click)="closeModal()">Cancelar</button>
+            <button type="button" class="btn-primary" [disabled]="loading()" (click)="saveProfile()">
+              {{ loading() ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (tab() === 'password') {
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="current-pw">Contrasena actual</label>
+            <input id="current-pw" type="password" class="form-input" [(ngModel)]="currentPassword" placeholder="••••••••" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="new-pw">Nueva contrasena</label>
+            <input id="new-pw" type="password" class="form-input" [(ngModel)]="newPassword" placeholder="Minimo 8 caracteres" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="confirm-pw">Confirmar nueva contrasena</label>
+            <input id="confirm-pw" type="password" class="form-input" [(ngModel)]="confirmPassword" placeholder="Repeti la nueva contrasena" />
+          </div>
+
+          @if (error()) { <p class="form-error">{{ error() }}</p> }
+          @if (success()) { <p class="form-success">{{ success() }}</p> }
+
+          <div class="modal-actions">
+            <button type="button" class="btn-ghost" (click)="closeModal()">Cancelar</button>
+            <button type="button" class="btn-primary" [disabled]="loading()" (click)="changePassword()">
+              {{ loading() ? 'Cambiando...' : 'Cambiar contrasena' }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

@@ -27,4 +27,6 @@
 .markdown-body th,.markdown-body td{padding:.45rem .65rem;border:1px solid var(--color-border);text-align:left}
 .markdown-body th{background:var(--color-panel-soft);font-weight:600}
 .markdown-body hr{border:none;border-top:1px solid var(--color-border);margin:.75rem 0}
+mark.speaking-highlight{background:var(--color-primary-bg);color:var(--color-primary-dark);padding:0 .15rem;border-radius:3px;font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--color-primary);animation:speakingPulse 1.2s ease-in-out infinite}
+@keyframes speakingPulse{0%,100%{background:var(--color-primary-bg)}50%{background:rgba(95,175,45,.25)}}
 @keyframes bubbleIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}

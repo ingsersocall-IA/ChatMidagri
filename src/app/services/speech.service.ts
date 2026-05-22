@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
@@ -8,16 +9,32 @@ export interface TtsEvent {
   message?: string;
 }
 
+interface AudioQueueItem {
+  buffer: ArrayBuffer;
+  sentenceId: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SpeechService {
   private mediaRecorder?: MediaRecorder;
   private audioChunks: Blob[] = [];
   private audioContext?: AudioContext;
-  private audioQueue: ArrayBuffer[] = [];
+  private audioQueue: AudioQueueItem[] = [];
   private isPlaying = false;
   private ttsTextQueue: string[] = [];
+  private ttsOriginalQueue: string[] = [];
   private isProcessingTtsQueue = false;
   private currentTtsConversationId: string | null = null;
+  private activeAbortController: AbortController | null = null;
+  private ttsCancelled = false;
+
+  /** Emite el texto que se esta reproduciendo (null = nada). Sincronizado con el audio real. */
+  readonly speakingText$ = new Subject<string | null>();
+
+  private speakingTextMap = new Map<number, string>();
+  private nextSentenceId = 0;
+  private currentProcessingSentenceId = -1;
+  private activeSpeakingSentenceId = -1;
 
   constructor(private readonly auth: AuthService) {}
 
@@ -32,15 +49,25 @@ export class SpeechService {
 
   startTtsSession(conversationId: string): void {
     this.stopPlayback();
+    this.cancelPendingTts();
     this.ttsTextQueue = [];
+    this.ttsOriginalQueue = [];
     this.isProcessingTtsQueue = false;
     this.currentTtsConversationId = conversationId;
+    this.ttsCancelled = false;
+    this.speakingTextMap.clear();
+    this.nextSentenceId = 0;
+    this.currentProcessingSentenceId = -1;
+    this.activeSpeakingSentenceId = -1;
   }
 
-  pushTtsChunk(text: string): void {
-    const cleaned = SpeechService.cleanTextForTts(text);
-    if (!cleaned.trim() || !this.currentTtsConversationId) return;
+  pushTtsChunk(originalText: string): void {
+    if (this.ttsCancelled || !this.currentTtsConversationId) return;
+    const cleaned = SpeechService.cleanTextForTts(originalText);
+    if (!cleaned.trim()) return;
     this.ttsTextQueue.push(cleaned.trim());
+    // Guardar texto ORIGINAL (sin limpiar markdown) para el highlight
+    this.ttsOriginalQueue.push(originalText.trim());
     if (!this.isProcessingTtsQueue) {
       void this.processTtsQueue();
     }
@@ -50,23 +77,31 @@ export class SpeechService {
     if (this.isProcessingTtsQueue) return;
     this.isProcessingTtsQueue = true;
 
-    while (this.ttsTextQueue.length > 0 && this.currentTtsConversationId) {
+    while (this.ttsTextQueue.length > 0 && !this.ttsCancelled && this.currentTtsConversationId) {
       const text = this.ttsTextQueue.shift()!;
+      const original = this.ttsOriginalQueue.shift() ?? text;
       const convId = this.currentTtsConversationId;
+
+      const sentenceId = this.nextSentenceId++;
+      this.speakingTextMap.set(sentenceId, original);
+      this.currentProcessingSentenceId = sentenceId;
+
       try {
         for await (const ev of this.streamTts(text, convId)) {
+          if (this.ttsCancelled) break;
           if (ev.type === 'audio' && ev.data) {
-            this.enqueueAudio(ev.data);
+            this.enqueueAudio(ev.data, sentenceId);
           } else if (ev.type === 'error') {
             break;
           }
         }
       } catch {
-        // Skip failed chunk, continue with next
+        // Skip failed chunk
       }
     }
 
     this.isProcessingTtsQueue = false;
+    this.currentProcessingSentenceId = -1;
   }
 
   static cleanTextForTts(text: string): string {
@@ -81,9 +116,6 @@ export class SpeechService {
       .trim();
   }
 
-  /**
-   * Inicia grabacion de audio desde el microfono.
-   */
   async startRecording(): Promise<void> {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -108,9 +140,6 @@ export class SpeechService {
     this.mediaRecorder.start(100);
   }
 
-  /**
-   * Detiene grabacion y devuelve el blob de audio.
-   */
   async stopRecording(): Promise<Blob> {
     return new Promise((resolve) => {
       if (!this.mediaRecorder) {
@@ -126,9 +155,6 @@ export class SpeechService {
     });
   }
 
-  /**
-   * Envia audio al backend para transcripcion.
-   */
   async transcribe(audioBlob: Blob): Promise<string> {
     const formData = new FormData();
     formData.append('file', audioBlob, 'audio.webm');
@@ -150,93 +176,103 @@ export class SpeechService {
     return data.text;
   }
 
-  /**
-   * Streaming TTS: recibe texto, devuelve eventos con chunks de audio.
-   */
   async *streamTts(text: string, conversationId: string): AsyncGenerator<TtsEvent> {
-    const params = new URLSearchParams({ text, conversationId });
-    const url = `${this.api('/speech/synthesize/stream')}?${params}`;
+    const controller = new AbortController();
+    this.activeAbortController = controller;
 
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Accept: 'text/event-stream',
-        ...this.auth.authHeader(),
-      },
-    });
+    try {
+      const params = new URLSearchParams({ text, conversationId });
+      const url = `${this.api('/speech/synthesize/stream')}?${params}`;
 
-    if (!res.ok || !res.body) {
-      const txt = await res.text().catch(() => '');
-      yield { type: 'error', message: txt || `Error HTTP ${res.status}` };
-      return;
-    }
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'text/event-stream',
+          ...this.auth.authHeader(),
+        },
+        signal: controller.signal,
+      });
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
+      if (!res.ok || !res.body) {
+        const txt = await res.text().catch(() => '');
+        yield { type: 'error', message: txt || `Error HTTP ${res.status}` };
+        return;
+      }
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
 
-      let idx: number;
-      while ((idx = buffer.indexOf('\n\n')) !== -1) {
-        const block = buffer.slice(0, idx);
-        buffer = buffer.slice(idx + 2);
-        const line = block
-          .split('\n')
-          .find((l) => l.startsWith('data: '));
-        if (!line) continue;
-        const json = line.slice(6).trim();
-        if (!json) continue;
-        let evt: TtsEvent;
-        try {
-          evt = JSON.parse(json) as TtsEvent;
-        } catch {
-          continue;
+      while (true) {
+        if (controller.signal.aborted) break;
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let idx: number;
+        while ((idx = buffer.indexOf('\n\n')) !== -1) {
+          const block = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 2);
+          const line = block
+            .split('\n')
+            .find((l) => l.startsWith('data: '));
+          if (!line) continue;
+          const json = line.slice(6).trim();
+          if (!json) continue;
+          let evt: TtsEvent;
+          try {
+            evt = JSON.parse(json) as TtsEvent;
+          } catch {
+            continue;
+          }
+          if (evt.type === 'audio' && evt.data) {
+            yield evt;
+          } else if (evt.type === 'done') {
+            yield evt;
+          } else if (evt.type === 'error') {
+            yield evt;
+            return;
+          }
         }
-        if (evt.type === 'audio' && evt.data) {
-          yield evt;
-        } else if (evt.type === 'done') {
-          yield evt;
-        } else if (evt.type === 'error') {
-          yield evt;
-          return;
-        }
+      }
+    } finally {
+      if (this.activeAbortController === controller) {
+        this.activeAbortController = null;
       }
     }
   }
 
-  /**
-   * Encola un chunk de audio base64 para reproduccion secuencial.
-   */
-  async enqueueAudio(base64: string): Promise<void> {
+  private enqueueAudio(base64: string, sentenceId: number): void {
+    if (this.ttsCancelled) return;
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
     }
-    this.audioQueue.push(bytes.buffer);
+    this.audioQueue.push({ buffer: bytes.buffer, sentenceId });
     if (!this.isPlaying) {
       this.playNextChunk();
     }
   }
 
-  /**
-   * Reproduce el siguiente chunk de audio en cola.
-   */
   private async playNextChunk(): Promise<void> {
-    if (this.audioQueue.length === 0) {
+    if (this.ttsCancelled || this.audioQueue.length === 0) {
       this.isPlaying = false;
       return;
     }
     this.isPlaying = true;
     this.audioContext ??= new AudioContext();
 
-    const buffer = this.audioQueue.shift()!;
+    const item = this.audioQueue.shift()!;
+
+    if (item.sentenceId !== this.activeSpeakingSentenceId) {
+      this.activeSpeakingSentenceId = item.sentenceId;
+      const text = this.speakingTextMap.get(item.sentenceId) ?? null;
+      this.speakingText$.next(text);
+    }
+
     try {
-      const audioBuffer = await this.audioContext.decodeAudioData(buffer);
+      const audioBuffer = await this.audioContext.decodeAudioData(item.buffer);
       const source = this.audioContext.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(this.audioContext.destination);
@@ -249,10 +285,18 @@ export class SpeechService {
     }
   }
 
-  /**
-   * Detiene toda reproduccion de audio.
-   */
+  private cancelPendingTts(): void {
+    this.ttsCancelled = true;
+    this.ttsTextQueue = [];
+    this.ttsOriginalQueue = [];
+    this.activeAbortController?.abort();
+    this.activeAbortController = null;
+    this.activeSpeakingSentenceId = -1;
+    this.speakingText$.next(null);
+  }
+
   stopPlayback(): void {
+    this.cancelPendingTts();
     this.audioQueue = [];
     this.isPlaying = false;
     this.audioContext?.close();
