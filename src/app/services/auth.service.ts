@@ -54,11 +54,11 @@ export class AuthService {
       );
   }
 
-  register(email: string, password: string) {
+  register(email: string, password: string, name?: string) {
     return this.http
       .post<{ access_token: string; user: UserProfile }>(
         this.api('/api/auth/register'),
-        { email, password },
+        { email, password, name },
       )
       .pipe(
         tap((res) => {

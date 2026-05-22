@@ -37,6 +37,8 @@
                   <div class="conv-dropdown conv-dropdown--fixed" [style.top.px]="dropdownPos()?.top" [style.left.px]="dropdownPos()?.left" (click)="$event.stopPropagation()">
                     <button class="conv-dropdown__item" (click)="selectConversation(c.id); closeConvMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 9V7a2 2 0 0 0-2-2h-6l-4-4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"/><path d="M14 14h6m-3-3v6"/></svg>Abrir</button>
                     <div class="conv-dropdown__separator"></div>
+                    <button class="conv-dropdown__item" (click)="openShare(c.id); closeConvMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Compartir</button>
+                    <div class="conv-dropdown__separator"></div>
                     <button class="conv-dropdown__item" (click)="moveConversationTo(c,null); closeConvMenu()">Mover a: Sin carpeta</button>
                     @for (f of folders(); track f.id) { <button class="conv-dropdown__item" (click)="moveConversationTo(c,f.id); closeConvMenu()">Mover a: {{ f.name }}</button> }
                     <div class="conv-dropdown__separator"></div>
@@ -71,6 +73,8 @@
                       @if (openConvMenuId()===c.id) {
                         <div class="conv-dropdown conv-dropdown--fixed" [style.top.px]="dropdownPos()?.top" [style.left.px]="dropdownPos()?.left" (click)="$event.stopPropagation()">
                           <button class="conv-dropdown__item" (click)="selectConversation(c.id); closeConvMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 9V7a2 2 0 0 0-2-2h-6l-4-4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"/><path d="M14 14h6m-3-3v6"/></svg>Abrir</button>
+                          <div class="conv-dropdown__separator"></div>
+                          <button class="conv-dropdown__item" (click)="openShare(c.id); closeConvMenu()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Compartir</button>
                           <div class="conv-dropdown__separator"></div>
                           <button class="conv-dropdown__item" (click)="moveConversationTo(c,null); closeConvMenu()">Mover a: Sin carpeta</button>
                           @for (f of folders(); track f.id) { <button class="conv-dropdown__item" (click)="moveConversationTo(c,f.id); closeConvMenu()">Mover a: {{ f.name }}</button> }
@@ -177,8 +181,17 @@
           }
           @for (m of displayedMessages(); track m.id) {
             <div id="msg-{{ m.id }}" class="message-row" [class.message-row--user]="m.role==='user'" [class.message-row--assistant]="m.role==='assistant'">
-              @if (m.role==='assistant') { <img class="message-avatar" [src]="assistantIconSrc()" alt="" (error)="onLogoError('icon')"/> }
+              @if (m.role==='assistant') {
+                <img class="message-avatar" [src]="assistantIconSrc()" alt="" (error)="onLogoError('icon')"/>
+              } @else if (m.sender) {
+                <midagri-avatar [name]="m.sender.name ?? m.sender.email" size="sm" />
+              }
               <div class="message-content">
+                @if (m.sender && m.role==='user') {
+                  <div class="message-sender">{{ m.sender.name ?? m.sender.email }} · <span class="message-time">{{ formatTime(m.createdAt!) }}</span></div>
+                } @else if (m.createdAt && m.role==='user') {
+                  <div class="message-sender"><span class="message-time">{{ formatTime(m.createdAt) }}</span></div>
+                }
                 <midagri-markdown-bubble [role]="m.role" [content]="m.content" [speakingText]="m.role==='assistant' ? speakingText() : null"/>
                 @if (m.role==='assistant') {
                   <div class="message-actions"><button type="button" class="message-actions__btn" (click)="copyMessage(m.id,m.content)" [attr.aria-label]="copiedMessageId()===m.id?'Copiado':'Copiar'">{{ copiedMessageId()===m.id ? '✓' : '📋' }}</button></div>
@@ -256,6 +269,7 @@
 </div>
 
 <midagri-profile-modal />
+<midagri-share-modal />
 
 @if (folderDialogOpen()) {
   <div class="dialog-backdrop" (click)="closeFolderDialog()">

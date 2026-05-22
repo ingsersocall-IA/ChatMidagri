@@ -22,11 +22,15 @@ import {
 import { SpeechService } from '../services/speech.service';
 import { MarkdownBubbleComponent } from '../shared/markdown-bubble.component';
 import { ProfileModalComponent } from '../profile/profile-modal.component';
+import { ShareModalComponent } from '../share/share-modal.component';
+import { AvatarComponent } from '../shared/avatar.component';
 
 type UiMessage = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  createdAt?: string;
+  sender?: { id: string; email: string; name: string | null } | null;
 };
 
 type FolderDialogMode = 'create' | 'rename';
@@ -42,7 +46,7 @@ type Toast = {
 @Component({
   selector: 'midagri-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, MarkdownBubbleComponent, ProfileModalComponent],
+  imports: [CommonModule, FormsModule, MarkdownBubbleComponent, ProfileModalComponent, ShareModalComponent, AvatarComponent],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
 })
@@ -58,6 +62,7 @@ export class ChatComponent implements OnDestroy {
   @ViewChild('threadEl') threadEl?: ElementRef<HTMLDivElement>;
   @ViewChild('composerInput') composerInput?: ElementRef<HTMLTextAreaElement>;
   @ViewChild(ProfileModalComponent) profileModal?: ProfileModalComponent;
+  @ViewChild(ShareModalComponent) shareModal?: ShareModalComponent;
 
   readonly conversations = signal<ConversationDto[]>([]);
   readonly folders = signal<FolderDto[]>([]);
@@ -114,6 +119,8 @@ export class ChatComponent implements OnDestroy {
       id: m.id,
       role: m.role,
       content: m.content,
+      createdAt: m.createdAt,
+      sender: m.user,
     }));
     return [...fromServer, ...this.optimisticMessages()];
   });
@@ -481,6 +488,10 @@ export class ChatComponent implements OnDestroy {
 
   openProfile(): void {
     this.profileModal?.openModal();
+  }
+
+  openShare(conversationId: string): void {
+    this.shareModal?.openModal(conversationId);
   }
 
   /* ─── Scroll ─── */

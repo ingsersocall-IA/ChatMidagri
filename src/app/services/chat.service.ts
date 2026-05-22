@@ -9,6 +9,7 @@ export interface ConversationDto {
   title: string;
   folderId: string | null;
   createdAt: string;
+  userId?: string;
 }
 
 export interface FolderDto {
@@ -17,11 +18,25 @@ export interface FolderDto {
   createdAt: string;
 }
 
+export interface MessageSender {
+  id: string;
+  email: string;
+  name: string | null;
+}
+
 export interface MessageDto {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   createdAt: string;
+  user: MessageSender | null;
+}
+
+export interface SharedUserDto {
+  id: string;
+  email: string;
+  name: string | null;
+  sharedAt: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -170,5 +185,21 @@ export class ChatService {
         }
       }
     }
+  }
+
+  /* ─── Share ─── */
+
+  getSharedUsers(conversationId: string) {
+    return this.http.get<SharedUserDto[]>(
+      this.api(`/api/conversations/${conversationId}/shared`),
+    );
+  }
+
+  shareConversation(conversationId: string, userId: string) {
+    return this.http.post(this.api(`/api/conversations/${conversationId}/share`), { userId });
+  }
+
+  unshareConversation(conversationId: string, userId: string) {
+    return this.http.delete(this.api(`/api/conversations/${conversationId}/share/${userId}`));
   }
 }
