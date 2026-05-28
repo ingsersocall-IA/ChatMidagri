@@ -1,0 +1,32 @@
+# Node
+apps/server/node_modules/
+apps/server/dist/
+
+# Python
+**/__pycache__/
+**/.venv/
+**/*.pyc
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+!.env.example
+
+# Archives
+*.zip
+*.tar.gz
+
+# Large binaries (whisper models, compiled exes)
+*.bin
+*.exe
+services/whisper-cpp/
+
+# Frontend (not part of backend deployment)
+apps/client/
