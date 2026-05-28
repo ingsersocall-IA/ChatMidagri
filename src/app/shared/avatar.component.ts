@@ -11,6 +11,7 @@ import { Component, computed, input } from '@angular/core';
 export class AvatarComponent {
   readonly name = input.required<string>();
   readonly size = input<'sm' | 'md' | 'lg'>('md');
+  readonly color = input<string | null>(null);
 
   readonly initial = computed(() => {
     const n = this.name().trim();
@@ -19,6 +20,8 @@ export class AvatarComponent {
   });
 
   readonly bg = computed(() => {
+    const override = this.color();
+    if (override) return override;
     let hash = 0;
     const n = this.name();
     for (let i = 0; i < n.length; i++) {

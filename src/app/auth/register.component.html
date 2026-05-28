@@ -1,68 +1,73 @@
 <div class="auth-page">
 
-  <!-- Panel izquierdo: branding -->
+  <!-- Panel izquierdo -->
   <div class="auth-panel auth-panel--brand">
-    <div class="auth-panel__content">
-      <img class="auth-panel__logo" src="/assets/branding/logo_login.webp" alt="Asistente MIDAGRI"/>
-      <h1 class="auth-panel__title">Asistente Jurídico MIDAGRI</h1>
-      <p class="auth-panel__desc">
-        Plataforma de consultas orientativas para facilitar el acceso a:
-      </p>
-      <ul class="auth-panel__features">
-        <li class="auth-panel__feature">
-          <span class="auth-panel__feat-icon">⚖️</span>
-          <span>Normativa agraria actualizada</span>
-        </li>
-        <li class="auth-panel__feature">
-          <span class="auth-panel__feat-icon">📋</span>
-          <span>Orientación en trámites agrarios</span>
-        </li>
-        <li class="auth-panel__feature">
-          <span class="auth-panel__feat-icon">🔒</span>
-          <span>Acceso institucional seguro</span>
-        </li>
-      </ul>
+    <div class="brand-content">
+
+      <img class="brand-gov-logo" src="/assets/branding/Logo-MIDAGRI.webp" alt="Ministerio de Desarrollo Agrario y Riego"/>
+
+      <h1 class="brand-title">
+        <strong>AGROLEGIS IA es la plataforma<br>de consultas orientativas del MIDAGRI</strong><br>
+        <span class="brand-title-light">para facilitar el acceso a:</span>
+      </h1>
+
+      <div class="brand-features-box">
+        <div class="brand-feature">
+          <span class="brand-feat-icon">
+            <img src="/assets/branding/normativa.webp" alt="Normativa agraria"/>
+          </span>
+          <span class="brand-feat-text">
+            <strong>Normativa agraria</strong>
+            actualizada
+          </span>
+        </div>
+        <div class="brand-divider"></div>
+        <div class="brand-feature">
+          <span class="brand-feat-icon">
+            <img src="/assets/branding/orientación.webp" alt="Orientación en trámites"/>
+          </span>
+          <span class="brand-feat-text">
+            <strong>Orientación en trámites</strong>
+            agrarios
+          </span>
+        </div>
+        <div class="brand-divider"></div>
+        <div class="brand-feature">
+          <span class="brand-feat-icon">
+            <img src="/assets/branding/acceso.webp" alt="Acceso institucional"/>
+          </span>
+          <span class="brand-feat-text">
+            <strong>Acceso institucional</strong>
+            seguro
+          </span>
+        </div>
+      </div>
     </div>
-    <div class="auth-panel__bottom">
-      <img class="auth-panel__midagri-logo" src="/assets/branding/ministerio.png" alt="MIDAGRI"/>
-      <p class="auth-panel__footnote">Ministerio de Desarrollo Agrario y Riego · Perú</p>
-    </div>
+
   </div>
 
-  <!-- Separador vid: divide visualmente verde y blanco -->
-  <img class="auth-vine" src="/assets/branding/pngwing.com.webp" alt="" aria-hidden="true"/>
+  <!-- Mascota: centrada en el límite horizontal y vertical de la página -->
+  <img class="brand-mascot" src="/assets/branding/Mascota-MIDAGRI.webp" alt="Mascota MIDAGRI"/>
 
   <!-- Panel derecho: formulario -->
   <div class="auth-panel auth-panel--form">
     <div class="auth-form-wrap">
 
       <div class="auth-form-header">
-        <img class="auth-form-icon" src="/assets/branding/icono_login_.png" alt=""/>
+        <img class="auth-logo" src="/assets/branding/Logo-Vertical-Agrolegis.webp" alt="AGROLEGIS IA"/>
         <h2 class="auth-form-title">Crear cuenta</h2>
         <p class="auth-sub">Registro para el asistente de consultas jurídicas y normativas.</p>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
         <label class="auth-label" for="reg-name">Nombre (opcional)</label>
-        <input
-          id="reg-name"
-          class="auth-input"
-          type="text"
-          autocomplete="name"
-          formControlName="name"
-          placeholder="Tu nombre"
-          maxlength="120"
-        />
+        <input id="reg-name" class="auth-input" type="text" autocomplete="name"
+          formControlName="name" placeholder="Tu nombre" maxlength="120"/>
 
         <label class="auth-label" for="reg-email">Correo institucional</label>
-        <input
-          id="reg-email"
-          class="auth-input"
+        <input id="reg-email" class="auth-input"
           [class.auth-input--invalid]="form.get('email')!.invalid && form.get('email')!.touched"
-          type="email"
-          autocomplete="username"
-          formControlName="email"
-        />
+          type="email" autocomplete="username" formControlName="email"/>
         @if (form.get('email')!.touched && form.get('email')!.hasError('required')) {
           <span class="auth-field-error">El correo es obligatorio.</span>
         }
@@ -71,14 +76,9 @@
         }
 
         <label class="auth-label" for="reg-password">Contraseña (mín. 8 caracteres)</label>
-        <input
-          id="reg-password"
-          class="auth-input"
+        <input id="reg-password" class="auth-input"
           [class.auth-input--invalid]="form.get('password')!.invalid && form.get('password')!.touched"
-          type="password"
-          autocomplete="new-password"
-          formControlName="password"
-        />
+          type="password" autocomplete="new-password" formControlName="password"/>
         @if (form.get('password')!.touched && form.get('password')!.hasError('required')) {
           <span class="auth-field-error">La contraseña es obligatoria.</span>
         }
@@ -86,9 +86,7 @@
           <span class="auth-field-error">Mínimo 8 caracteres.</span>
         }
 
-        @if (error) {
-          <p class="auth-error" role="alert">{{ error }}</p>
-        }
+        @if (error) { <p class="auth-error" role="alert">{{ error }}</p> }
 
         <button class="auth-submit" type="submit" [disabled]="loading">
           {{ loading ? 'Creando…' : 'Registrarme' }}
@@ -98,7 +96,6 @@
       <p class="auth-footer">
         ¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a>
       </p>
-
     </div>
   </div>
 

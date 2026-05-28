@@ -84,8 +84,8 @@ export class ChatComponent implements OnDestroy {
   readonly notifications = signal<NotificationDto[]>([]);
   readonly unreadNotifCount = signal(0);
   readonly notifOpen = signal(false);
-  readonly logoSrc = signal('/assets/branding/ministerio.png');
-  readonly assistantIconSrc = signal('/assets/branding/ICON_CHATMIDAGRI.png');
+  readonly logoSrc = signal('/assets/branding/Logo-MIDAGRI.webp');
+  readonly assistantIconSrc = signal('/assets/branding/Logo-Vertical-Agrolegis.webp');
   readonly draggingConvId = signal<string | null>(null);
   readonly dragOverFolderId = signal<string | 'root' | null>(null);
   readonly folderDialogOpen = signal(false);
@@ -174,6 +174,7 @@ export class ChatComponent implements OnDestroy {
   @HostListener('document:click')
   onDocumentClick(): void {
     if (this.openConvMenuId()) this.closeConvMenu();
+    if (this.notifOpen()) this.notifOpen.set(false);
   }
 
   /* ─── Routing / data ─── */
@@ -502,7 +503,15 @@ export class ChatComponent implements OnDestroy {
     this.ttsEnabled.set(on);
   }
 
-  readonly userName = computed(() => this.auth.user()?.name ?? 'Usuario');
+  readonly userName = computed(() => {
+    const u = this.auth.user();
+    return u?.name ?? u?.email?.split('@')[0] ?? 'Usuario';
+  });
+
+  readonly userDisplayName = computed(() => {
+    const u = this.auth.user();
+    return u?.email ?? u?.name ?? 'Usuario';
+  });
 
   openProfile(): void {
     this.profileModal?.openModal();
