@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiBase: 'https://backchatm.ngrok.app',
+  apiBase: 'https://heartwarming-superpersonal-edyth.ngrok-free.dev',
 };

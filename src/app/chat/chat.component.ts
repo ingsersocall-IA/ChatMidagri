@@ -531,8 +531,12 @@ export class ChatComponent implements OnDestroy {
       }
       void this.refreshSidebarData();
     });
-    this.socket.on('notification', () => {
-      void this.loadNotifications();
+    this.socket.on('notification', (payload: { kind: string }) => {
+      if (payload.kind === 'sidebar_refresh') {
+        void this.refreshSidebarData();
+      } else {
+        void this.loadNotifications();
+      }
     });
     this.socket.on('disconnect', () => {
       setTimeout(() => this.connectSocket(), 3000);
